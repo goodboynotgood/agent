@@ -630,6 +630,39 @@
       background-size: 128px 128px;
     }
 
+    .video-terminal-frame {
+      border: 1px solid var(--border);
+      background: var(--bg-modal);
+      padding: 4px;
+      display: inline-block;
+      max-width: 80%;
+      max-height: 80%;
+      box-shadow: 0 0 40px rgba(239, 99, 138, 0.1);
+    }
+
+    .video-terminal-frame .terminal-bar {
+      border-bottom: 1px solid var(--border);
+      padding: 8px 12px;
+      margin-bottom: 4px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+
+    .video-terminal-frame .terminal-bar-title {
+      font-size: 9px;
+      letter-spacing: 3px;
+      color: var(--pink-dim);
+      text-transform: uppercase;
+    }
+
+    .video-terminal-frame video {
+      display: block;
+      width: 100%;
+      border: 1px solid var(--border);
+      opacity: 0.85;
+    }
+
     /* ========== MOBILE ========== */
     @media (max-width: 640px) {
       .header {
@@ -647,12 +680,12 @@
 
       .btn-terminal {
         font-size: 10px;
-        padding: 8px 14px;
+        padding: 4px 7px;
         letter-spacing: 2px;
       }
 
       .btn-terminal.primary {
-        padding: 9px 15px;
+        padding: 5px 8px;
       }
 
       .footer {
@@ -677,6 +710,27 @@
 
       .t-line {
         font-size: 10px;
+      }
+
+      .video-terminal-frame {
+        max-width: 100%;
+        max-height: 100%;
+        width: 100vw;
+        border-left: none;
+        border-right: none;
+        padding: 0;
+      }
+
+      .video-terminal-frame .terminal-bar {
+        border-left: none;
+        border-right: none;
+        margin-bottom: 0;
+      }
+
+      .video-terminal-frame video {
+        border-left: none;
+        border-right: none;
+        border-bottom: none;
       }
 
       .t-line.header-line {
@@ -741,20 +795,17 @@
       <!-- Center Map Image as Terminal Video -->
       <div class="map-image-wrapper" id="mapImageWrapper">
         <div class="map-image-inner" id="mapImageInner">
-          <div class="video-terminal-frame"
-            style="border: 1px solid var(--border); background: var(--bg-modal); padding: 4px; display: inline-block; max-width: 80%; max-height: 80%; box-shadow: 0 0 40px rgba(239,99,138,0.1);">
-            <div class="terminal-bar"
-              style="border-bottom: 1px solid var(--border); padding: 8px 12px; margin-bottom: 4px; display: flex; justify-content: space-between; align-items: center;">
-              <span class="terminal-bar-title"
-                style="font-size: 9px; letter-spacing: 3px; color: var(--pink-dim); text-transform: uppercase;">sys://video.render</span>
+          <div class="video-terminal-frame">
+            <div class="terminal-bar">
+              <span class="terminal-bar-title">sys://video.render</span>
               <span style="display: flex; gap: 4px;">
                 <div style="width: 8px; height: 8px; border: 1px solid var(--pink-dim);"></div>
                 <div style="width: 8px; height: 8px; border: 1px solid var(--pink-dim);"></div>
                 <div style="width: 8px; height: 8px; background: var(--pink-dim);"></div>
               </span>
             </div>
-            <video class="map-image" src="asset/video.mp4" autoplay loop muted playsinline disablePictureInPicture
-              style="display: block; width: 100%; border: 1px solid var(--border); opacity: 0.85;"></video>
+            <video class="map-image" src="asset/video.mp4" autoplay loop muted playsinline
+              disablePictureInPicture></video>
           </div>
         </div>
         <div class="map-vignette"></div>
