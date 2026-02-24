@@ -633,8 +633,9 @@
     .video-terminal-frame {
       border: 1px solid var(--border);
       background: var(--bg-modal);
-      padding: 4px;
-      display: inline-block;
+      padding: 0;
+      display: inline-flex;
+      flex-direction: column;
       max-width: 80%;
       max-height: 80%;
       box-shadow: 0 0 40px rgba(239, 99, 138, 0.1);
@@ -643,10 +644,12 @@
     .video-terminal-frame .terminal-bar {
       border-bottom: 1px solid var(--border);
       padding: 8px 12px;
-      margin-bottom: 4px;
+      margin-bottom: 0;
       display: flex;
       justify-content: space-between;
       align-items: center;
+      width: 100%;
+      box-sizing: border-box;
     }
 
     .video-terminal-frame .terminal-bar-title {
@@ -659,7 +662,7 @@
     .video-terminal-frame video {
       display: block;
       width: 100%;
-      border: 1px solid var(--border);
+      border-bottom: none;
       opacity: 0.85;
     }
 
@@ -680,12 +683,12 @@
 
       .btn-terminal {
         font-size: 10px;
-        padding: 4px 7px;
+        padding: 5px 10px;
         letter-spacing: 2px;
       }
 
       .btn-terminal.primary {
-        padding: 5px 8px;
+        padding: 5px 10px;
       }
 
       .footer {
@@ -713,24 +716,8 @@
       }
 
       .video-terminal-frame {
-        max-width: 100%;
-        max-height: 100%;
-        width: 100vw;
-        border-left: none;
-        border-right: none;
-        padding: 0;
-      }
-
-      .video-terminal-frame .terminal-bar {
-        border-left: none;
-        border-right: none;
-        margin-bottom: 0;
-      }
-
-      .video-terminal-frame video {
-        border-left: none;
-        border-right: none;
-        border-bottom: none;
+        max-width: 90%;
+        max-height: 80%;
       }
 
       .t-line.header-line {
