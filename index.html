@@ -1,0 +1,1003 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+  <title>AGENT WORLD — Powered by HINGU</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link
+    href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@300;400;500;700&family=Share+Tech+Mono&display=swap"
+    rel="stylesheet">
+  <link rel="icon" type="image/x-icon" href="asset/favicon.ico">
+  <link rel="icon" type="image/png" href="asset/favicon.png">
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.5/gsap.min.js"></script>
+  <style>
+    *,
+    *::before,
+    *::after {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+
+    :root {
+      --pink: #EF638A;
+      --pink-dim: #EF638A99;
+      --pink-dark: #7a2f45;
+      --pink-glow: #EF638A33;
+      --pink-subtle: #EF638A15;
+      --bg: #07070A;
+      --bg-elevated: #0c0c12;
+      --bg-modal: #09090f;
+      --text-dim: #EF638A66;
+      --text-muted: #EF638A44;
+      --border: #EF638A22;
+      --scanline: rgba(0, 0, 0, 0.12);
+    }
+
+    html,
+    body {
+      height: 100%;
+      overflow: hidden;
+      background: var(--bg);
+      color: var(--pink);
+      font-family: 'JetBrains Mono', 'Share Tech Mono', monospace;
+      -webkit-font-smoothing: antialiased;
+      cursor: default;
+      user-select: none;
+    }
+
+    /* ========== CRT OVERLAY ========== */
+    .crt-overlay {
+      position: fixed;
+      inset: 0;
+      pointer-events: none;
+      z-index: 9999;
+    }
+
+    .crt-overlay::before {
+      content: '';
+      position: absolute;
+      inset: 0;
+      background: repeating-linear-gradient(0deg,
+          transparent,
+          transparent 2px,
+          var(--scanline) 2px,
+          var(--scanline) 4px);
+      opacity: 0.4;
+    }
+
+    .crt-overlay::after {
+      content: '';
+      position: absolute;
+      inset: 0;
+      background: radial-gradient(ellipse at center, transparent 50%, rgba(0, 0, 0, 0.35) 100%);
+    }
+
+    /* ========== SCREEN FLICKER ========== */
+    @keyframes flicker {
+
+      0%,
+      100% {
+        opacity: 1;
+      }
+
+      92% {
+        opacity: 1;
+      }
+
+      93% {
+        opacity: 0.8;
+      }
+
+      94% {
+        opacity: 1;
+      }
+
+      96% {
+        opacity: 0.9;
+      }
+
+      97% {
+        opacity: 1;
+      }
+    }
+
+    .screen-container {
+      position: fixed;
+      inset: 0;
+      display: flex;
+      flex-direction: column;
+      animation: flicker 8s infinite;
+    }
+
+    @media (prefers-reduced-motion: reduce) {
+      .screen-container {
+        animation: none;
+      }
+
+      .crt-overlay::before {
+        opacity: 0.15;
+      }
+
+      .terminal-modal,
+      .modal-backdrop {
+        transition: none !important;
+      }
+
+      .takeover-overlay {
+        transition: none !important;
+      }
+    }
+
+    /* ========== HEADER ========== */
+    .header {
+      position: relative;
+      z-index: 100;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 16px 24px;
+      border-bottom: 1px solid var(--border);
+      background: var(--bg);
+      flex-shrink: 0;
+    }
+
+    .logo-group {
+      display: flex;
+      flex-direction: column;
+      gap: 2px;
+    }
+
+    .logo-title {
+      font-size: 15px;
+      font-weight: 700;
+      letter-spacing: 3px;
+      text-transform: uppercase;
+      color: var(--pink);
+      line-height: 1;
+    }
+
+    .logo-sub {
+      font-size: 10.8px;
+      font-weight: 400;
+      letter-spacing: 2.4px;
+      text-transform: uppercase;
+      color: var(--pink-dim);
+      line-height: 1;
+    }
+
+    .header-actions {
+      display: flex;
+      gap: 12px;
+      align-items: center;
+    }
+
+    .btn-terminal {
+      font-family: inherit;
+      font-size: 13px;
+      font-weight: 500;
+      letter-spacing: 3px;
+      text-transform: uppercase;
+      color: var(--pink);
+      background: transparent;
+      border: 1px solid var(--pink-dark);
+      padding: 10px 24px;
+      cursor: pointer;
+      transition: all 0.25s ease;
+      position: relative;
+      overflow: hidden;
+      z-index: 1;
+    }
+
+    /* CRT scanline texture on buttons */
+    .btn-terminal::after {
+      content: '';
+      position: absolute;
+      inset: 0;
+      background: repeating-linear-gradient(0deg,
+          transparent,
+          transparent 2px,
+          rgba(0, 0, 0, 0.18) 2px,
+          rgba(0, 0, 0, 0.18) 4px);
+      pointer-events: none;
+      z-index: 2;
+    }
+
+    .btn-terminal:hover {
+      border-color: var(--pink);
+      box-shadow: 0 0 12px rgba(239, 99, 138, 0.12), inset 0 0 12px rgba(239, 99, 138, 0.06);
+    }
+
+    .btn-terminal.primary {
+      border: none;
+      background: var(--pink-dark);
+      color: var(--bg);
+      font-weight: 700;
+      padding: 11px 25px;
+      box-shadow: 0 0 20px rgba(239, 99, 138, 0.1);
+    }
+
+    .btn-terminal.primary::after {
+      background: repeating-linear-gradient(0deg,
+          transparent,
+          transparent 2px,
+          rgba(0, 0, 0, 0.22) 2px,
+          rgba(0, 0, 0, 0.22) 4px);
+    }
+
+    .btn-terminal.primary:hover {
+      background: var(--pink);
+      box-shadow: 0 0 24px rgba(239, 99, 138, 0.25);
+    }
+
+    /* ========== MAIN MAP AREA ========== */
+    .map-area {
+      flex: 1;
+      position: relative;
+      overflow: hidden;
+      background: var(--bg);
+    }
+
+    /* Pixel Grid Background */
+    .pixel-grid {
+      position: absolute;
+      inset: 0;
+      opacity: 0.03;
+      background-image:
+        linear-gradient(var(--pink) 1px, transparent 1px),
+        linear-gradient(90deg, var(--pink) 1px, transparent 1px);
+      background-size: 32px 32px;
+    }
+
+    /* Center Map Image — Parallax */
+    .map-image-wrapper {
+      position: absolute;
+      inset: 0;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      overflow: hidden;
+      opacity: 0;
+    }
+
+    .map-image-inner {
+      position: relative;
+      width: 100%;
+      height: 100%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      will-change: transform;
+      transition: transform 0.15s ease-out;
+    }
+
+    .map-image {
+      width: 100%;
+      height: auto;
+      object-fit: contain;
+      image-rendering: auto;
+      border-radius: 0;
+    }
+
+    /* Vignette over image */
+    .map-vignette {
+      position: absolute;
+      inset: 0;
+      pointer-events: none;
+      background: radial-gradient(ellipse at center, transparent 40%, var(--bg) 100%);
+    }
+
+    @keyframes blink {
+
+      0%,
+      100% {
+        opacity: 1;
+      }
+
+      50% {
+        opacity: 0;
+      }
+    }
+
+    /* Corner Decorations */
+    .corner-marker {
+      position: absolute;
+      font-size: 8px;
+      letter-spacing: 2px;
+      color: var(--text-muted);
+      text-transform: uppercase;
+    }
+
+    .corner-marker.tl {
+      top: 20px;
+      left: 24px;
+    }
+
+    .corner-marker.tr {
+      top: 20px;
+      right: 24px;
+      text-align: right;
+    }
+
+    .corner-marker.bl {
+      bottom: 20px;
+      left: 24px;
+    }
+
+    .corner-marker.br {
+      bottom: 20px;
+      right: 24px;
+      text-align: right;
+    }
+
+    /* Edge line accents */
+    .edge-line {
+      position: absolute;
+      background: var(--border);
+    }
+
+    .edge-line.top {
+      top: 40px;
+      left: 24px;
+      right: 24px;
+      height: 1px;
+    }
+
+    .edge-line.bottom {
+      bottom: 40px;
+      left: 24px;
+      right: 24px;
+      height: 1px;
+    }
+
+    /* ========== FOOTER ========== */
+    .footer {
+      position: relative;
+      z-index: 100;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 14px 24px;
+      border-top: 1px solid var(--border);
+      background: var(--bg);
+      flex-shrink: 0;
+    }
+
+    .footer-left {
+      font-size: 10.8px;
+      letter-spacing: 2.4px;
+      text-transform: uppercase;
+      color: var(--pink-dim);
+    }
+
+    .footer-links {
+      display: flex;
+      gap: 16px;
+    }
+
+    .footer-link {
+      font-family: inherit;
+      font-size: 12px;
+      letter-spacing: 2.4px;
+      text-transform: uppercase;
+      color: var(--pink-dim);
+      text-decoration: none;
+      background: none;
+      border: none;
+      cursor: pointer;
+      transition: color 0.2s;
+      padding: 0;
+    }
+
+    .footer-link:hover {
+      color: var(--pink);
+    }
+
+    /* ========== MODAL BACKDROP ========== */
+    .modal-backdrop {
+      position: fixed;
+      inset: 0;
+      background: rgba(3, 3, 5, 0.85);
+      z-index: 500;
+      opacity: 0;
+      pointer-events: none;
+      transition: opacity 0.3s ease;
+    }
+
+    .modal-backdrop.active {
+      opacity: 1;
+      pointer-events: all;
+    }
+
+    /* ========== TERMINAL MODAL ========== */
+    .terminal-modal {
+      position: fixed;
+      top: 50%;
+      left: 50%;
+      z-index: 600;
+      width: min(640px, 90vw);
+      max-height: 80vh;
+      transform: translate(-50%, -50%) scale(0.92);
+      opacity: 0;
+      pointer-events: none;
+      transition: all 0.35s cubic-bezier(0.16, 1, 0.3, 1);
+      background: var(--bg-modal);
+      border: 1px solid var(--border);
+      overflow: hidden;
+    }
+
+    .terminal-modal.active {
+      opacity: 1;
+      transform: translate(-50%, -50%) scale(1);
+      pointer-events: all;
+    }
+
+    .terminal-bar {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 10px 16px;
+      border-bottom: 1px solid var(--border);
+      background: var(--bg-elevated);
+    }
+
+    .terminal-bar-title {
+      font-size: 9px;
+      letter-spacing: 3px;
+      text-transform: uppercase;
+      color: var(--pink-dim);
+    }
+
+    .terminal-close {
+      font-family: inherit;
+      font-size: 10px;
+      color: var(--pink-dim);
+      background: none;
+      border: none;
+      cursor: pointer;
+      letter-spacing: 2px;
+      padding: 2px 6px;
+      transition: color 0.2s;
+    }
+
+    .terminal-close:hover {
+      color: var(--pink);
+    }
+
+    .terminal-body {
+      padding: 28px 24px;
+      overflow-y: auto;
+      max-height: calc(80vh - 50px);
+    }
+
+    .terminal-body::-webkit-scrollbar {
+      width: 4px;
+    }
+
+    .terminal-body::-webkit-scrollbar-track {
+      background: transparent;
+    }
+
+    .terminal-body::-webkit-scrollbar-thumb {
+      background: var(--border);
+      border-radius: 2px;
+    }
+
+    .t-line {
+      font-size: 11px;
+      line-height: 1.8;
+      color: var(--pink-dim);
+      margin-bottom: 4px;
+      opacity: 0;
+      transform: translateY(6px);
+    }
+
+    .t-line.header-line {
+      font-size: 13px;
+      font-weight: 700;
+      color: var(--pink);
+      letter-spacing: 3px;
+      margin-bottom: 16px;
+      text-transform: uppercase;
+    }
+
+    .t-line .prompt {
+      color: var(--pink);
+      margin-right: 6px;
+    }
+
+    .t-line .highlight {
+      color: var(--pink);
+      font-weight: 500;
+    }
+
+    .t-line.spacer {
+      height: 16px;
+      margin: 0;
+    }
+
+    .t-line .dim {
+      color: var(--text-muted);
+    }
+
+    .t-divider {
+      border: none;
+      border-top: 1px solid var(--border);
+      margin: 20px 0;
+      opacity: 0;
+    }
+
+    /* ========== TAKEOVER OVERLAY ========== */
+    .takeover-overlay {
+      position: fixed;
+      inset: 0;
+      z-index: 800;
+      background: var(--bg);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      flex-direction: column;
+      opacity: 0;
+      pointer-events: none;
+      transition: opacity 0.4s ease;
+    }
+
+    .takeover-overlay.active {
+      opacity: 1;
+      pointer-events: all;
+    }
+
+    .takeover-text {
+      font-size: clamp(24px, 5vw, 56px);
+      font-weight: 700;
+      letter-spacing: 6px;
+      text-transform: uppercase;
+      color: var(--pink);
+      text-align: center;
+      line-height: 1.4;
+      opacity: 0;
+      transform: scale(0.95);
+    }
+
+    .takeover-sub {
+      font-size: 10px;
+      letter-spacing: 4px;
+      text-transform: uppercase;
+      color: var(--pink-dim);
+      margin-top: 24px;
+      opacity: 0;
+    }
+
+    .takeover-dismiss {
+      position: absolute;
+      bottom: 40px;
+      font-family: inherit;
+      font-size: 9px;
+      letter-spacing: 3px;
+      text-transform: uppercase;
+      color: var(--text-muted);
+      background: none;
+      border: 1px solid var(--border);
+      padding: 8px 20px;
+      cursor: pointer;
+      opacity: 0;
+      transition: color 0.2s, border-color 0.2s;
+    }
+
+    .takeover-dismiss:hover {
+      color: var(--pink);
+      border-color: var(--pink-dim);
+    }
+
+    /* ========== BOOT SEQUENCE ========== */
+    .boot-overlay {
+      position: fixed;
+      inset: 0;
+      z-index: 10000;
+      background: var(--bg);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      flex-direction: column;
+      gap: 12px;
+    }
+
+    .boot-line {
+      font-size: 10px;
+      letter-spacing: 2px;
+      color: var(--pink-dim);
+      text-transform: uppercase;
+      opacity: 0;
+    }
+
+    .boot-line.sys {
+      color: var(--text-muted);
+      font-size: 9px;
+    }
+
+    /* ========== NOISE TEXTURE ========== */
+    .noise {
+      position: fixed;
+      inset: 0;
+      pointer-events: none;
+      z-index: 9998;
+      opacity: 0.025;
+      background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");
+      background-repeat: repeat;
+      background-size: 128px 128px;
+    }
+
+    /* ========== MOBILE ========== */
+    @media (max-width: 640px) {
+      .header {
+        padding: 12px 16px;
+      }
+
+      .logo-title {
+        font-size: 12px;
+        letter-spacing: 2px;
+      }
+
+      .logo-sub {
+        font-size: 8px;
+      }
+
+      .btn-terminal {
+        font-size: 10px;
+        padding: 8px 14px;
+        letter-spacing: 2px;
+      }
+
+      .btn-terminal.primary {
+        padding: 9px 15px;
+      }
+
+      .footer {
+        padding: 10px 16px;
+      }
+
+      .footer-left {
+        font-size: 8px;
+      }
+
+      .footer-link {
+        font-size: 9px;
+      }
+
+      .corner-marker {
+        font-size: 7px;
+      }
+
+      .terminal-body {
+        padding: 20px 16px;
+      }
+
+      .t-line {
+        font-size: 10px;
+      }
+
+      .t-line.header-line {
+        font-size: 11px;
+      }
+
+      .map-image {
+        max-width: 92%;
+        max-height: 80%;
+      }
+    }
+  </style>
+</head>
+
+<body>
+
+  <!-- Boot Sequence -->
+  <div class="boot-overlay" id="bootOverlay">
+    <div class="boot-line sys">HINGU SYSTEM v2.1.0</div>
+    <div class="boot-line sys">Initializing display kernel...</div>
+    <div class="boot-line">Agent World Online</div>
+    <div class="boot-line">Pixel map loaded — 0 sectors claimed</div>
+    <div class="boot-line" style="color: var(--pink);">System ready_</div>
+  </div>
+
+  <!-- Noise -->
+  <div class="noise"></div>
+
+  <!-- CRT Scanlines -->
+  <div class="crt-overlay"></div>
+
+  <!-- Screen Container -->
+  <div class="screen-container" id="screenContainer" style="opacity: 0;">
+
+    <!-- HEADER -->
+    <header class="header">
+      <div class="logo-group">
+        <div class="logo-title">Agent World</div>
+        <div class="logo-sub">Powered by HINGU</div>
+      </div>
+      <div class="header-actions">
+        <button class="btn-terminal" id="btnAbout" onclick="openModal('about')">[ About ]</button>
+        <a href="https://app.virtuals.io/prototypes/0x5B3e1CC25f9CAe5e4E02450d671A994Ec631e61F" target="_blank"
+          class="btn-terminal primary" id="btnToken" style="text-decoration: none; display: inline-block;">[ Get $HINGU
+          ]</a>
+      </div>
+    </header>
+
+    <!-- MAIN MAP AREA -->
+    <main class="map-area">
+      <div class="pixel-grid"></div>
+
+      <!-- Corner Markers -->
+      <div class="corner-marker tl">SYS://map.display<br><span style="color: var(--text-muted)">sector 0,0</span></div>
+      <div class="corner-marker tr">Status: Active<br><span style="color: var(--text-muted)">Uptime 99.7%</span></div>
+      <div class="corner-marker bl">Resolution: Adaptive<br><span style="color: var(--text-muted)">CRT Mode</span></div>
+      <div class="corner-marker br">Agents: Idle<br><span style="color: var(--text-muted)">Awaiting input</span></div>
+
+      <div class="edge-line top"></div>
+      <div class="edge-line bottom"></div>
+
+      <!-- Center Map Image as Terminal Video -->
+      <div class="map-image-wrapper" id="mapImageWrapper">
+        <div class="map-image-inner" id="mapImageInner">
+          <div class="video-terminal-frame"
+            style="border: 1px solid var(--border); background: var(--bg-modal); padding: 4px; display: inline-block; max-width: 80%; max-height: 80%; box-shadow: 0 0 40px rgba(239,99,138,0.1);">
+            <div class="terminal-bar"
+              style="border-bottom: 1px solid var(--border); padding: 8px 12px; margin-bottom: 4px; display: flex; justify-content: space-between; align-items: center;">
+              <span class="terminal-bar-title"
+                style="font-size: 9px; letter-spacing: 3px; color: var(--pink-dim); text-transform: uppercase;">sys://video.render</span>
+              <span style="display: flex; gap: 4px;">
+                <div style="width: 8px; height: 8px; border: 1px solid var(--pink-dim);"></div>
+                <div style="width: 8px; height: 8px; border: 1px solid var(--pink-dim);"></div>
+                <div style="width: 8px; height: 8px; background: var(--pink-dim);"></div>
+              </span>
+            </div>
+            <video class="map-image" src="asset/video.mp4" autoplay loop muted playsinline disablePictureInPicture
+              style="display: block; width: 100%; border: 1px solid var(--border); opacity: 0.85;"></video>
+          </div>
+        </div>
+        <div class="map-vignette"></div>
+      </div>
+    </main>
+
+    <!-- FOOTER -->
+    <footer class="footer">
+      <div class="footer-left">Join HINGU World</div>
+      <div class="footer-links">
+        <a href="https://x.com/hingukim" target="_blank" class="footer-link" aria-label="X (Twitter)">[ X ]</a>
+        <a href="https://t.me/hinguripongpong" target="_blank" class="footer-link" aria-label="Telegram">[ Telegram
+          ]</a>
+      </div>
+    </footer>
+  </div>
+
+  <!-- Modal Backdrop -->
+  <div class="modal-backdrop" id="modalBackdrop" onclick="closeModal()"></div>
+
+  <!-- ABOUT Terminal Modal -->
+  <div class="terminal-modal" id="aboutModal">
+    <div class="terminal-bar">
+      <span class="terminal-bar-title">sys://about.log</span>
+      <button class="terminal-close" onclick="closeModal()">[X] Close</button>
+    </div>
+    <div class="terminal-body" id="aboutBody">
+      <div class="t-line header-line">Agent World System</div>
+      <div class="t-line"><span class="prompt">&gt;</span> HINGU agents don't rest.</div>
+      <div class="t-line"><span class="prompt">&gt;</span> They <span class="highlight">run</span>. They <span
+          class="highlight">render</span>. They <span class="highlight">claim</span>.</div>
+      <div class="t-line spacer"></div>
+      <div class="t-line"><span class="prompt">&gt;</span> This is an advertising system.</div>
+      <div class="t-line"><span class="prompt">&gt;</span> Pixels are territory. Agents are workers.</div>
+      <div class="t-line"><span class="prompt">&gt;</span> Every frame is a billboard.</div>
+      <hr class="t-divider">
+      <div class="t-line"><span class="dim">// The map is the product.</span></div>
+      <div class="t-line"><span class="dim">// The agent is the engine.</span></div>
+      <div class="t-line"><span class="dim">// $HINGU is the key.</span></div>
+      <hr class="t-divider">
+      <div class="t-line"><span class="prompt">&gt;</span> No whitepaper. No roadmap.</div>
+      <div class="t-line"><span class="prompt">&gt;</span> Watch the screen. <span class="highlight">It works.</span>
+      </div>
+    </div>
+  </div>
+
+  <!-- TOKEN Terminal Modal -->
+  <div class="terminal-modal" id="tokenModal">
+    <div class="terminal-bar">
+      <span class="terminal-bar-title">sys://token.access</span>
+      <button class="terminal-close" onclick="closeModal()">[X] Close</button>
+    </div>
+    <div class="terminal-body" id="tokenBody">
+      <div class="t-line header-line">$HINGU Token</div>
+      <div class="t-line"><span class="prompt">&gt;</span> $HINGU is not a utility token.</div>
+      <div class="t-line"><span class="prompt">&gt;</span> It is <span class="highlight">screen access</span>.</div>
+      <div class="t-line spacer"></div>
+      <div class="t-line"><span class="prompt">&gt;</span> Hold $HINGU → Claim pixels.</div>
+      <div class="t-line"><span class="prompt">&gt;</span> Claim pixels → Deploy agents.</div>
+      <div class="t-line"><span class="prompt">&gt;</span> Deploy agents → <span class="highlight">Own the
+          screen</span>.</div>
+      <hr class="t-divider">
+      <div class="t-line"><span class="dim">// Supply: Fixed.</span></div>
+      <div class="t-line"><span class="dim">// Demand: Every brand that wants attention.</span></div>
+      <div class="t-line"><span class="dim">// Power: Whoever holds the most.</span></div>
+      <hr class="t-divider">
+      <div class="t-line"><span class="prompt">&gt;</span> This is not a pitch. This is a <span
+          class="highlight">takeover</span>.</div>
+      <div class="t-line spacer"></div>
+      <div class="t-line" style="text-align: center; margin-top: 8px;">
+        <button class="btn-terminal primary" onclick="triggerTakeover()" style="font-size: 10px;">[ Initiate Takeover
+          ]</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- TAKEOVER OVERLAY -->
+  <div class="takeover-overlay" id="takeoverOverlay">
+    <div class="takeover-text" id="takeoverText">Dominate<br>The Screen</div>
+    <div class="takeover-sub" id="takeoverSub">$HINGU — Claim Your Territory</div>
+    <button class="takeover-dismiss" id="takeoverDismiss" onclick="closeTakeover()">[ Return to System ]</button>
+  </div>
+
+  <script>
+    // ========== REDUCED MOTION CHECK ==========
+    const prefersReducedMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+    const dur = prefersReducedMotion ? 0 : undefined;
+
+    // ========== BOOT SEQUENCE ==========
+    (function bootSequence() {
+      const bootOverlay = document.getElementById('bootOverlay');
+      const screen = document.getElementById('screenContainer');
+      const mapWrapper = document.getElementById('mapImageWrapper');
+      const bootLines = bootOverlay.querySelectorAll('.boot-line');
+
+      if (prefersReducedMotion) {
+        bootOverlay.style.display = 'none';
+        screen.style.opacity = '1';
+        mapWrapper.style.opacity = '1';
+        return;
+      }
+
+      const tl = gsap.timeline({
+        onComplete: () => {
+          gsap.to(bootOverlay, {
+            opacity: 0,
+            duration: 0.3,
+            onComplete: () => { bootOverlay.style.display = 'none'; }
+          });
+          gsap.to(screen, { opacity: 1, duration: 0.4, delay: 0.2 });
+          gsap.to(mapWrapper, { opacity: 1, duration: 0.8, delay: 0.5, ease: 'power2.out' });
+        }
+      });
+
+      bootLines.forEach((line, i) => {
+        tl.to(line, { opacity: 1, duration: 0.15, delay: i === 0 ? 0.3 : 0.25 });
+      });
+
+      tl.to({}, { duration: 0.4 });
+    })();
+
+    // ========== MODAL SYSTEM ==========
+    let activeModal = null;
+
+    function openModal(type) {
+      const backdrop = document.getElementById('modalBackdrop');
+      const modal = document.getElementById(type === 'about' ? 'aboutModal' : 'tokenModal');
+      const bodyId = type === 'about' ? 'aboutBody' : 'tokenBody';
+
+      if (activeModal) closeModal();
+
+      activeModal = modal;
+      backdrop.classList.add('active');
+      modal.classList.add('active');
+
+      // Animate terminal lines in
+      const lines = document.getElementById(bodyId).querySelectorAll('.t-line, .t-divider');
+      if (prefersReducedMotion) {
+        lines.forEach(l => { l.style.opacity = '1'; l.style.transform = 'none'; });
+      } else {
+        gsap.fromTo(lines,
+          { opacity: 0, y: 6 },
+          { opacity: 1, y: 0, duration: 0.25, stagger: 0.04, delay: 0.2, ease: 'power2.out' }
+        );
+      }
+    }
+
+    function closeModal() {
+      const backdrop = document.getElementById('modalBackdrop');
+      backdrop.classList.remove('active');
+
+      if (activeModal) {
+        activeModal.classList.remove('active');
+        const lines = activeModal.querySelectorAll('.t-line, .t-divider');
+        lines.forEach(l => { l.style.opacity = '0'; l.style.transform = 'translateY(6px)'; });
+        activeModal = null;
+      }
+    }
+
+    // ESC to close
+    document.addEventListener('keydown', (e) => {
+      if (e.key === 'Escape') {
+        if (document.getElementById('takeoverOverlay').classList.contains('active')) {
+          closeTakeover();
+        } else {
+          closeModal();
+        }
+      }
+    });
+
+    // ========== TAKEOVER ==========
+    function triggerTakeover() {
+      closeModal();
+
+      const overlay = document.getElementById('takeoverOverlay');
+      const text = document.getElementById('takeoverText');
+      const sub = document.getElementById('takeoverSub');
+      const dismiss = document.getElementById('takeoverDismiss');
+
+      setTimeout(() => {
+        overlay.classList.add('active');
+
+        if (prefersReducedMotion) {
+          text.style.opacity = '1';
+          text.style.transform = 'none';
+          sub.style.opacity = '1';
+          dismiss.style.opacity = '1';
+          return;
+        }
+
+        gsap.fromTo(text,
+          { opacity: 0, scale: 0.88 },
+          { opacity: 1, scale: 1, duration: 0.6, delay: 0.3, ease: 'power3.out' }
+        );
+        gsap.to(sub, { opacity: 1, duration: 0.4, delay: 0.7 });
+        gsap.to(dismiss, { opacity: 1, duration: 0.4, delay: 1.0 });
+      }, 350);
+    }
+
+    function closeTakeover() {
+      const overlay = document.getElementById('takeoverOverlay');
+      const text = document.getElementById('takeoverText');
+      const sub = document.getElementById('takeoverSub');
+      const dismiss = document.getElementById('takeoverDismiss');
+
+      if (prefersReducedMotion) {
+        overlay.classList.remove('active');
+        text.style.opacity = '0';
+        sub.style.opacity = '0';
+        dismiss.style.opacity = '0';
+        return;
+      }
+
+      gsap.to([text, sub, dismiss], {
+        opacity: 0,
+        duration: 0.25,
+        onComplete: () => {
+          overlay.classList.remove('active');
+          text.style.transform = 'scale(0.95)';
+        }
+      });
+    }
+
+    // ========== AMBIENT PIXEL GRID PULSE ==========
+    if (!prefersReducedMotion) {
+      const grid = document.querySelector('.pixel-grid');
+      gsap.to(grid, {
+        opacity: 0.06,
+        duration: 4,
+        yoyo: true,
+        repeat: -1,
+        ease: 'sine.inOut'
+      });
+    }
+
+    // ========== MOUSE PARALLAX ON MAP IMAGE (DISABLED) ==========
+    (function initParallax() {
+      const wrapper = document.getElementById('mapImageWrapper');
+      const inner = document.getElementById('mapImageInner');
+      if (!wrapper || !inner || prefersReducedMotion) return;
+      // Parallax interaction removed per user request
+    })();
+  </script>
+</body>
+
+</html>
