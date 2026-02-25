@@ -283,13 +283,7 @@
       transition: transform 0.15s ease-out;
     }
 
-    .map-image {
-      width: 100%;
-      height: auto;
-      object-fit: contain;
-      image-rendering: auto;
-      border-radius: 0;
-    }
+
 
     /* Vignette over image */
     .map-vignette {
@@ -645,8 +639,8 @@
       padding: 0;
       display: inline-flex;
       flex-direction: column;
-      max-width: 64%;
-      max-height: 64%;
+      max-width: 59%;
+      max-height: 59%;
       box-shadow: 0 0 40px rgba(239, 99, 138, 0.1);
     }
 
@@ -725,17 +719,12 @@
       }
 
       .video-terminal-frame {
-        max-width: 72%;
-        max-height: 64%;
+        max-width: 67%;
+        max-height: 59%;
       }
 
       .t-line.header-line {
         font-size: 11px;
-      }
-
-      .map-image {
-        max-width: 92%;
-        max-height: 80%;
       }
     }
   </style>
@@ -800,8 +789,7 @@
                 <div style="width: 8px; height: 8px; background: var(--pink-dim);"></div>
               </span>
             </div>
-            <video class="map-image" src="asset/video.mp4" autoplay loop muted playsinline
-              disablePictureInPicture></video>
+            <video src="asset/video.mp4" autoplay loop muted playsinline disablePictureInPicture></video>
           </div>
         </div>
         <div class="map-vignette"></div>
